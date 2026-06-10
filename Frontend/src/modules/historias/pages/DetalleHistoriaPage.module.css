@@ -1,0 +1,119 @@
+.page { max-width: 820px; }
+
+.topBar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+
+.back { background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-2); font-weight: 500; }
+.back:hover { background: var(--surface-2); }
+
+.topActions { display: flex; gap: 8px; }
+
+.btnIncap { padding: 7px 14px; border: 1px solid var(--primary); color: var(--primary); background: var(--primary-bg); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; }
+.btnIncap:hover { background: #e0e7ff; }
+
+.btnPrint { padding: 7px 14px; background: var(--success); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; }
+.btnPrint:hover { background: #059669; }
+
+/* Card */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+
+.cardHead { padding: 16px 24px; border-bottom: 1px solid var(--border); }
+.hTitle { font-size: 16px; font-weight: 700; color: var(--text); }
+.hDate { font-size: 12.5px; color: var(--text-3); margin-top: 3px; text-transform: capitalize; }
+
+.body { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+
+.twoCol { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.infoBox { background: var(--surface-2); border-radius: var(--radius); padding: 14px 16px; }
+.infoBoxLabel { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 8px; }
+.infoName { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.infoDetail { font-size: 12.5px; color: var(--text-2); margin-bottom: 2px; }
+.alertBox { background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 6px 10px; font-size: 12px; color: #b91c1c; margin-top: 6px; }
+
+/* Signos vitales */
+.svGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+.svCard { background: var(--surface-2); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; }
+.svLabel { font-size: 10.5px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.svValue { font-size: 17px; font-weight: 700; color: var(--primary); line-height: 1; }
+.svUnit { font-size: 10px; font-weight: 400; color: var(--text-3); }
+
+/* Sections */
+.section { }
+.secLabel { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 8px; }
+.secText { font-size: 13.5px; color: var(--text-2); line-height: 1.65; background: var(--surface-2); padding: 12px 14px; border-radius: var(--radius-sm); }
+
+/* Medicamentos */
+.medList { display: flex; flex-direction: column; gap: 8px; }
+.medItem { display: flex; align-items: flex-start; gap: 12px; background: var(--surface-2); border-radius: var(--radius-sm); padding: 11px 14px; }
+.medNum { width: 24px; height: 24px; border-radius: 50%; background: var(--primary-bg); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.medName { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.medTags { display: flex; flex-wrap: wrap; gap: 5px; }
+.medTag { font-size: 11.5px; background: var(--surface); border: 1px solid var(--border); padding: 2px 7px; border-radius: 99px; color: var(--text-2); }
+.medTagNote { font-size: 11.5px; background: #fffbeb; border: 1px solid #fde68a; padding: 2px 7px; border-radius: 99px; color: #92400e; }
+
+/* Incapacidades */
+.incapHead { display: flex; justify-content: space-between; align-items: center; }
+.incapList { display: flex; flex-direction: column; gap: 8px; }
+
+.incapCard {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface-2); border-radius: var(--radius); padding: 12px 14px;
+  border-left: 3px solid var(--primary);
+}
+
+.incapDias {
+  width: 52px; height: 52px; border-radius: var(--radius-sm);
+  background: var(--primary-bg); color: var(--primary);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.incapDias span { font-size: 20px; font-weight: 700; line-height: 1; }
+.incapDias small { font-size: 10px; font-weight: 600; }
+
+.incapTipo { font-size: 13px; font-weight: 600; color: var(--text); }
+.incapPeriod { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.incapDiag { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+.incapActions { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+.btnPDF { padding: 5px 10px; background: #f0fdf4; color: var(--success); border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; }
+.btnDel { padding: 5px 8px; background: #fef2f2; color: var(--danger); border: none; border-radius: var(--radius-sm); font-size: 12px; }
+
+/* Modal */
+.overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 16px; }
+
+.modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+
+.modalHead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.modalTitle { font-size: 15px; font-weight: 700; color: var(--text); }
+.closeBtn { background: none; border: none; color: var(--text-3); padding: 4px; border-radius: var(--radius-sm); display: flex; align-items: center; }
+.closeBtn:hover { background: var(--surface-2); color: var(--text); }
+
+.incapForm { display: flex; flex-direction: column; gap: 13px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+.field input, .field select, .field textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); outline: none; font-family: inherit; resize: vertical; transition: border-color .15s, box-shadow .15s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+
+.diasBadge {
+  background: var(--primary-bg); color: var(--primary);
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  font-size: 13px; text-align: center;
+}
+.diasBadge strong { font-size: 20px; margin-right: 4px; }
+
+.modalFooter { display: flex; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
+.btnCancel { padding: 8px 16px; border: 1px solid var(--border); background: transparent; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-2); }
+.btnCancel:hover { background: var(--surface-2); }
+.btnSave { padding: 8px 18px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; }
+.btnSave:hover:not(:disabled) { background: var(--primary-h); }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 600px) {
+  .twoCol { grid-template-columns: 1fr; }
+  .svGrid { grid-template-columns: repeat(3, 1fr); }
+  .grid3 { grid-template-columns: 1fr 1fr; }
+}

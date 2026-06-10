@@ -1,0 +1,156 @@
+.page { max-width: 900px; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.title { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+.subtitle { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+.btnNew {
+  padding: 8px 16px; background: var(--primary); color: #fff;
+  border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
+}
+
+.btnNew:hover { background: var(--primary-h); }
+
+/* Table */
+.tableWrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+thead { background: var(--surface-2); }
+
+th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 13px 16px;
+  font-size: 13.5px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--surface-2); }
+
+.userCell { display: flex; align-items: center; gap: 10px; }
+
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0; color: #fff;
+}
+
+.userName { font-weight: 600; font-size: 13.5px; }
+.userEmail { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+
+.rolBadge {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.estadoBadge {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.activo  { background: #f0fdf4; color: var(--success); }
+.inactivo { background: #fef2f2; color: var(--danger); }
+
+.actions { display: flex; gap: 6px; }
+
+.btnEdit { padding: 5px 10px; background: #fffbeb; color: #d97706; border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; }
+.btnDel  { padding: 5px 10px; background: #fef2f2; color: var(--danger); border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; }
+
+/* Modal */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,.45); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 300; padding: 16px;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.modalHead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modalTitle { font-size: 16px; font-weight: 700; color: var(--text); }
+
+.closeBtn {
+  background: none; border: none; color: var(--text-3); padding: 4px;
+  border-radius: var(--radius-sm); display: flex; align-items: center;
+}
+
+.closeBtn:hover { background: var(--surface-2); color: var(--text); }
+
+.form { display: flex; flex-direction: column; gap: 13px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.field input, .field select {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.field input:focus, .field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+}
+
+.modalFooter {
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+
+.btnCancel {
+  padding: 8px 16px; border: 1px solid var(--border); background: transparent;
+  border-radius: var(--radius-sm); font-size: 13px; color: var(--text-2);
+}
+
+.btnCancel:hover { background: var(--surface-2); }
+
+.btnSave {
+  padding: 8px 16px; background: var(--primary); color: #fff;
+  border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
+}
+
+.btnSave:hover:not(:disabled) { background: var(--primary-h); }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }

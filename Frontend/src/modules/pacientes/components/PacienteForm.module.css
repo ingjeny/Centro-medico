@@ -1,0 +1,61 @@
+.form { display: flex; flex-direction: column; gap: 14px; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+
+.field label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.field input, .field select, .field textarea {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+}
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.btnCancel {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.btnCancel:hover { background: var(--surface-2); }
+
+.btnSave {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btnSave:hover:not(:disabled) { background: var(--primary-h); }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 500px) { .grid2 { grid-template-columns: 1fr; } }

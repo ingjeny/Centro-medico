@@ -1,0 +1,5 @@
+USE consultorio;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS especialidad VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS firma_path VARCHAR(255);

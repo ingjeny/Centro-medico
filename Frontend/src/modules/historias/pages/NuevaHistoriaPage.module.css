@@ -1,0 +1,134 @@
+.page { max-width: 820px; }
+
+.topBar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.topBar h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+.back { background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-2); font-weight: 500; }
+.back:hover { background: var(--surface-2); }
+
+/* Patient banner */
+.patientBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.bannerAvatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--primary-bg); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12.5px; font-weight: 700; flex-shrink: 0;
+}
+
+.patientBanner strong { font-size: 14px; color: var(--text); display: block; }
+.patientBanner span { font-size: 12.5px; color: var(--text-3); margin-right: 12px; }
+
+.alertPill {
+  margin-left: auto;
+  background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+  padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 600;
+}
+
+/* Form */
+.form { display: flex; flex-direction: column; gap: 12px; }
+
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHead { display: flex; justify-content: space-between; align-items: center; }
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-3);
+  margin: 0;
+}
+
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+.field input, .field textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.field input:focus, .field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+}
+
+/* Medicamentos */
+.btnAdd {
+  padding: 5px 11px; background: var(--primary-bg); color: var(--primary);
+  border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
+}
+
+.emptyMeds { font-size: 13px; color: var(--text-3); }
+
+.medCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  background: var(--surface-2);
+}
+
+.medCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.medNum {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+
+.btnRemove { padding: 3px 9px; background: #fef2f2; color: var(--danger); border: none; border-radius: var(--radius-sm); font-size: 11.5px; font-weight: 600; }
+
+.medGrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.span2 { grid-column: span 2; }
+
+.formFooter {
+  display: flex; justify-content: flex-end; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 14px 20px;
+}
+
+.btnCancel { padding: 8px 16px; border: 1px solid var(--border); background: transparent; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-2); }
+.btnCancel:hover { background: var(--surface-2); }
+.btnSave { padding: 8px 18px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; }
+.btnSave:hover:not(:disabled) { background: var(--primary-h); }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .grid4 { grid-template-columns: 1fr 1fr; }
+  .medGrid { grid-template-columns: 1fr 1fr; }
+  .span2 { grid-column: span 2; }
+}
