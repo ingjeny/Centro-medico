@@ -9,13 +9,18 @@ const login = async (email, password) => {
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) throw new Error('Credenciales inválidas');
 
-  const token = jwt.sign(
-    { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol },
-    process.env.JWT_SECRET,
-    { expiresIn: '8h' }
-  );
+  const payload = {
+    id:              user.id,
+    nombre:          user.nombre,
+    email:           user.email,
+    rol:             user.rol,
+    consultorio_id:  user.consultorio_id  || null,
+    especialidad_id: user.especialidad_id || null,
+  };
 
-  return { token, user: { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol } };
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
+
+  return { token, user: payload };
 };
 
 module.exports = { login };

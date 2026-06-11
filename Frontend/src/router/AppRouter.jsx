@@ -11,6 +11,8 @@ import NuevaHistoriaPage from '../modules/historias/pages/NuevaHistoriaPage';
 import DetalleHistoriaPage from '../modules/historias/pages/DetalleHistoriaPage';
 import UsuariosPage from '../modules/usuarios/pages/UsuariosPage';
 import ConfiguracionPage from '../modules/configuracion/pages/ConfiguracionPage';
+import EspecialidadesPage from '../modules/especialidades/pages/EspecialidadesPage';
+import ConsultoriosPage from '../modules/consultorios/pages/ConsultoriosPage';
 
 const PrivateRoute = ({ children, roles }) => {
   const { user } = useAuthStore();
@@ -46,6 +48,16 @@ export default function AppRouter() {
           <Route path="usuarios" element={
             <PrivateRoute roles={['admin']}>
               <UsuariosPage />
+            </PrivateRoute>
+          } />
+          <Route path="consultorios" element={
+            <PrivateRoute roles={['admin']}>
+              <ConsultoriosPage />
+            </PrivateRoute>
+          } />
+          <Route path="especialidades" element={
+            <PrivateRoute roles={['admin']}>
+              <EspecialidadesPage />
             </PrivateRoute>
           } />
           <Route path="configuracion" element={

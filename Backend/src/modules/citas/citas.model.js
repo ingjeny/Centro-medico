@@ -1,6 +1,16 @@
 const pool = require('../../config/database');
+const { getScope } = require('../../helpers/scope');
 
-const getByMonth = async (year, month) => {
+const scopeAnd = (user, alias, vals) => {
+  const cid = getScope(user);
+  if (cid === null) return '';
+  vals.push(cid);
+  return ` AND ${alias}.consultorio_id = ?`;
+};
+
+const getByMonth = async (year, month, user) => {
+  const vals = [year, month];
+  const extra = scopeAnd(user, 'c', vals);
   const [rows] = await pool.query(
     `SELECT c.*,
       CONCAT(p.nombre, ' ', p.apellido) AS paciente_nombre,
@@ -9,14 +19,16 @@ const getByMonth = async (year, month) => {
      FROM citas c
      JOIN pacientes p ON c.paciente_id = p.id
      JOIN usuarios u ON c.doctor_id = u.id
-     WHERE YEAR(c.fecha) = ? AND MONTH(c.fecha) = ?
+     WHERE YEAR(c.fecha) = ? AND MONTH(c.fecha) = ?${extra}
      ORDER BY c.fecha, c.hora`,
-    [year, month]
+    vals
   );
   return rows;
 };
 
-const getByDate = async (fecha) => {
+const getByDate = async (fecha, user) => {
+  const vals = [fecha];
+  const extra = scopeAnd(user, 'c', vals);
   const [rows] = await pool.query(
     `SELECT c.*,
       CONCAT(p.nombre, ' ', p.apellido) AS paciente_nombre,
@@ -25,9 +37,9 @@ const getByDate = async (fecha) => {
      FROM citas c
      JOIN pacientes p ON c.paciente_id = p.id
      JOIN usuarios u ON c.doctor_id = u.id
-     WHERE c.fecha = ?
+     WHERE c.fecha = ?${extra}
      ORDER BY c.hora`,
-    [fecha]
+    vals
   );
   return rows;
 };
@@ -46,10 +58,11 @@ const getById = async (id) => {
   return rows[0];
 };
 
-const create = async ({ paciente_id, doctor_id, fecha, hora, motivo, notas, tipo_pago }) => {
+const create = async ({ paciente_id, doctor_id, fecha, hora, motivo, notas, tipo_pago }, user) => {
+  const cid = user.consultorio_id || null;
   const [result] = await pool.query(
-    'INSERT INTO citas (paciente_id, doctor_id, fecha, hora, motivo, notas, tipo_pago) VALUES (?,?,?,?,?,?,?)',
-    [paciente_id, doctor_id, fecha, hora, motivo || null, notas || null, tipo_pago || 'pendiente_pago']
+    'INSERT INTO citas (paciente_id, doctor_id, fecha, hora, motivo, notas, tipo_pago, consultorio_id) VALUES (?,?,?,?,?,?,?,?)',
+    [paciente_id, doctor_id, fecha, hora, motivo || null, notas || null, tipo_pago || 'pendiente_pago', cid]
   );
   return result.insertId;
 };
@@ -61,12 +74,12 @@ const update = async (id, { paciente_id, doctor_id, fecha, hora, motivo, estado,
   );
 };
 
-const updateTipoPago = async (id, tipo_pago) => {
-  await pool.query('UPDATE citas SET tipo_pago=? WHERE id=?', [tipo_pago, id]);
-};
-
 const updateEstado = async (id, estado) => {
   await pool.query('UPDATE citas SET estado=? WHERE id=?', [estado, id]);
+};
+
+const updateTipoPago = async (id, tipo_pago) => {
+  await pool.query('UPDATE citas SET tipo_pago=? WHERE id=?', [tipo_pago, id]);
 };
 
 const remove = async (id) => {

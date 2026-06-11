@@ -7,5 +7,7 @@ router.use('/citas', require('../modules/citas/citas.routes'));
 router.use('/historias', require('../modules/historias/historias.routes'));
 router.use('/incapacidades', require('../modules/incapacidades/incapacidades.routes'));
 router.use('/config', require('../modules/config/config.routes'));
+router.use('/especialidades', require('../modules/especialidades/especialidades.routes'));
+router.use('/consultorios', require('../modules/consultorios/consultorios.routes'));
 
 module.exports = router;

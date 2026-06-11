@@ -52,6 +52,23 @@ const navItems = [
     ),
   },
   {
+    to: '/consultorios', label: 'Consultorios', roles: ['admin'],
+    icon: (
+      <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9,22 9,12 15,12 15,22"/>
+      </svg>
+    ),
+  },
+  {
+    to: '/especialidades', label: 'Especialidades', roles: ['admin'],
+    icon: (
+      <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    ),
+  },
+  {
     to: '/configuracion', label: 'Configuración', roles: ['admin', 'doctor'],
     icon: (
       <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

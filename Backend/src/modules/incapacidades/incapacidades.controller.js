@@ -15,7 +15,7 @@ const create = async (req, res) => {
       const d2 = new Date(data.fecha_fin);
       data.dias = Math.round((d2 - d1) / 86400000) + 1;
     }
-    const id = await model.create(data);
+    const id = await model.create(data, req.user);
     res.status(201).json({ id, message: 'Incapacidad creada' });
   } catch (err) { res.status(400).json({ message: err.message }); }
 };

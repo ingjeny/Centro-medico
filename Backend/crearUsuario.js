@@ -4,9 +4,9 @@ require('dotenv').config();
 
 // ← Cambia estos datos
 const nombre = 'Dr. Juan Pérez';
-const email = 'secretaria@consultorio.com';
+const email = 'admin@gmail.com';
 const password = '1234';
-const rol = 'secretaria'; // 'admin' | 'doctor' | 'secretaria'
+const rol = 'admin'; // 'admin' | 'doctor' | 'secretaria'
 
 (async () => {
   const hash = await bcrypt.hash(password, 10);
