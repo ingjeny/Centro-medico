@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPacientes } from '../../pacientes/services/pacientes.service';
 import { getHistoriasByPaciente } from '../services/historias.service';
+import { API_URL } from '../../../api/axios';
 import styles from './HistoriasPage.module.css';
 
 const SearchIcon = () => (
@@ -35,7 +36,7 @@ export default function HistoriasPage() {
   };
 
   const openPDF = (id) => {
-    window.open(`http://localhost:3000/api/historias/${id}/pdf?token=${localStorage.getItem('token')}`, '_blank');
+    window.open(`${API_URL}/historias/${id}/pdf?token=${localStorage.getItem('token')}`, '_blank');
   };
 
   return (

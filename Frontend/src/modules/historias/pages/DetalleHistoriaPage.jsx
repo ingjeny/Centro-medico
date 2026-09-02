@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getHistoria, createIncapacidad, deleteIncapacidad } from '../services/historias.service';
 import useAuthStore from '../../../store/authStore';
+import { API_URL } from '../../../api/axios';
 import styles from './DetalleHistoriaPage.module.css';
 
-const BASE = 'http://localhost:3000/api';
+const BASE = API_URL;
 const token = () => localStorage.getItem('token');
 
 const emptyIncap = {

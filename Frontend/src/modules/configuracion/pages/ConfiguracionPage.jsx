@@ -3,7 +3,7 @@ import api from '../../../api/axios';
 import useAuthStore from '../../../store/authStore';
 import styles from './ConfiguracionPage.module.css';
 
-const BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+const BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') : '';
 
 export default function ConfiguracionPage() {
   const { user } = useAuthStore();
@@ -24,13 +24,13 @@ export default function ConfiguracionPage() {
   useEffect(() => {
     // Cargar logo actual
     api.get('/config/logo').then(r => {
-      if (r.data.logo_path) setLogoPreview(`${BASE}/${r.data.logo_path}`);
+      if (r.data.logo_path) setLogoPreview(`${BASE ? BASE + '/' : '/'}${r.data.logo_path.replace(/^\/+/, '')}`);
     }).catch(() => {});
 
     // Cargar firma actual del usuario
     if (isDoctor) {
       api.get('/usuarios/me').then(r => {
-        if (r.data.firma_path) setFirmaPreview(`${BASE}/${r.data.firma_path}`);
+        if (r.data.firma_path) setFirmaPreview(`${BASE ? BASE + '/' : '/'}${r.data.firma_path.replace(/^\/+/, '')}`);
       }).catch(() => {});
     }
   }, []);
