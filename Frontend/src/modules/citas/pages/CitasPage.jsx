@@ -57,6 +57,10 @@ export default function CitasPage() {
   });
   const [savingCobro, setSavingCobro] = useState(false);
 
+  // Estado para buscador de pacientes en modal
+  const [searchPaciente, setSearchPaciente] = useState('');
+  const [showPacienteList, setShowPacienteList] = useState(false);
+
   const loadMes = () =>
     getCitasByMonth(currentDate.getFullYear(), currentDate.getMonth() + 1).then(setCitasMes);
 
@@ -66,6 +70,15 @@ export default function CitasPage() {
     getPacientes().then(setPacientes);
     api.get('/usuarios/doctores').then(r => setDoctores(r.data));
   }, []);
+
+  const filteredPacientes = pacientes.filter(p => {
+    if (!searchPaciente.trim()) return true;
+    const term = searchPaciente.toLowerCase();
+    const full = `${p.nombre || ''} ${p.apellido || ''}`.toLowerCase();
+    const fullInv = `${p.apellido || ''} ${p.nombre || ''}`.toLowerCase();
+    const cedula = String(p.cedula || '');
+    return full.includes(term) || fullInv.includes(term) || cedula.includes(term);
+  });
 
   const handleDayClick = async (date) => {
     setSelectedDate(date);
@@ -80,11 +93,22 @@ export default function CitasPage() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!form.paciente_id) {
+      alert('Por favor selecciona un paciente usando el buscador.');
+      return;
+    }
     setLoading(true);
     try {
-      await createCita(form);
+      const isEx = form.tipo_pago === 'cortesia' || form.tipo_pago === 'familiar';
+      await createCita({
+        ...form,
+        costo: isEx ? 0 : (Number(form.costo) || 50000),
+        metodo_pago: isEx ? 'otro' : 'efectivo',
+      });
       setModal(false);
       setForm(EMPTY_FORM);
+      setSearchPaciente('');
+      setShowPacienteList(false);
       loadMes();
       refreshDia(form.fecha);
     } catch (err) {
@@ -113,9 +137,10 @@ export default function CitasPage() {
 
   const openCobro = (cita) => {
     setCobroCita(cita);
+    const isEx = cita.tipo_pago === 'cortesia' || cita.tipo_pago === 'familiar';
     setCobroForm({
-      costo: cita.costo !== null && cita.costo !== undefined && Number(cita.costo) > 0 ? cita.costo : '50000',
-      metodo_pago: cita.metodo_pago || 'efectivo',
+      costo: isEx ? '0' : (cita.costo !== null && cita.costo !== undefined && Number(cita.costo) > 0 ? cita.costo : '50000'),
+      metodo_pago: isEx ? 'otro' : (cita.metodo_pago || 'efectivo'),
       tipo_pago: cita.tipo_pago === 'pendiente_pago' ? 'pagada' : (cita.tipo_pago || 'pagada'),
       notas_pago: cita.notas_pago || '',
     });
@@ -127,9 +152,10 @@ export default function CitasPage() {
     if (!cobroCita) return;
     setSavingCobro(true);
     try {
+      const isEx = cobroForm.tipo_pago === 'cortesia' || cobroForm.tipo_pago === 'familiar';
       await registrarCobro(cobroCita.id, {
-        costo: Number(cobroForm.costo) || 0,
-        metodo_pago: cobroForm.metodo_pago,
+        costo: isEx ? 0 : (Number(cobroForm.costo) || 0),
+        metodo_pago: isEx ? 'otro' : cobroForm.metodo_pago,
         tipo_pago: cobroForm.tipo_pago,
         notas_pago: cobroForm.notas_pago,
       });
@@ -162,6 +188,8 @@ export default function CitasPage() {
       ...EMPTY_FORM,
       fecha: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
     });
+    setSearchPaciente('');
+    setShowPacienteList(false);
     setModal(true);
   };
 
@@ -324,9 +352,17 @@ export default function CitasPage() {
                                     onClick={() => openCobro(cita)}
                                     title="Registrar o editar cobro de la cita"
                                   >
-                                    💵 {cita.costo ? `$${Number(cita.costo).toLocaleString('es-CO')}` : 'Cobrar'}
+                                    💵 {
+                                      cita.tipo_pago === 'cortesia'
+                                        ? '$0 (Cortesía)'
+                                        : cita.tipo_pago === 'familiar'
+                                        ? '$0 (Familiar)'
+                                        : Number(cita.costo) > 0
+                                        ? `$${Number(cita.costo).toLocaleString('es-CO')}`
+                                        : 'Cobrar'
+                                    }
                                   </button>
-                                  {(Number(cita.costo) > 0 || cita.tipo_pago === 'pagada') && (
+                                  {(Number(cita.costo) > 0 || cita.tipo_pago === 'pagada' || cita.tipo_pago === 'cortesia' || cita.tipo_pago === 'familiar') && (
                                     <button
                                       type="button"
                                       className={styles.btnRecibo}
@@ -386,10 +422,83 @@ export default function CitasPage() {
             <form onSubmit={handleCreate} className={styles.form}>
               <div className={styles.field}>
                 <label>Paciente *</label>
-                <select value={form.paciente_id} onChange={e => setForm({ ...form, paciente_id: e.target.value })} required>
-                  <option value="">Seleccionar paciente</option>
-                  {pacientes.map(p => <option key={p.id} value={p.id}>{p.apellido}, {p.nombre}</option>)}
-                </select>
+                {form.paciente_id ? (
+                  <div className={styles.selectedPacienteCard}>
+                    <div className={styles.selectedPacienteText}>
+                      <span className={styles.selectedPacienteName}>
+                        👤 {pacientes.find(p => p.id === form.paciente_id)?.apellido}, {pacientes.find(p => p.id === form.paciente_id)?.nombre}
+                      </span>
+                      <span className={styles.selectedPacienteSub}>
+                        C.I. {pacientes.find(p => p.id === form.paciente_id)?.cedula}
+                        {pacientes.find(p => p.id === form.paciente_id)?.telefono ? ` · Tel: ${pacientes.find(p => p.id === form.paciente_id)?.telefono}` : ''}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.btnChangePaciente}
+                      onClick={() => {
+                        setForm({ ...form, paciente_id: '' });
+                        setSearchPaciente('');
+                        setShowPacienteList(true);
+                      }}
+                    >
+                      Cambiar
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.searchPacienteWrap}>
+                    <div className={styles.searchPacienteInputWrap}>
+                      <span className={styles.searchPacienteIcon}>🔍</span>
+                      <input
+                        type="text"
+                        className={styles.searchPacienteInput}
+                        placeholder="Buscar por nombre, apellido o cédula..."
+                        value={searchPaciente}
+                        onChange={e => {
+                          setSearchPaciente(e.target.value);
+                          setShowPacienteList(true);
+                        }}
+                        onFocus={() => setShowPacienteList(true)}
+                        autoComplete="off"
+                      />
+                      {searchPaciente && (
+                        <button
+                          type="button"
+                          className={styles.btnClearSearch}
+                          onClick={() => setSearchPaciente('')}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    {showPacienteList && (
+                      <div className={styles.pacienteDropdown}>
+                        {filteredPacientes.length === 0 ? (
+                          <div className={styles.pacienteDropdownEmpty}>
+                            No se encontraron pacientes para "{searchPaciente}"
+                          </div>
+                        ) : (
+                          filteredPacientes.slice(0, 30).map(p => (
+                            <div
+                              key={p.id}
+                              className={styles.pacienteDropdownItem}
+                              onClick={() => {
+                                setForm({ ...form, paciente_id: p.id });
+                                setSearchPaciente('');
+                                setShowPacienteList(false);
+                              }}
+                            >
+                              <div className={styles.pDropName}>{p.apellido}, {p.nombre}</div>
+                              <div className={styles.pDropSub}>
+                                C.I. {p.cedula} {p.telefono ? ` · 📞 ${p.telefono}` : ''}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className={styles.field}>
@@ -436,6 +545,11 @@ export default function CitasPage() {
                     </button>
                   ))}
                 </div>
+                {(form.tipo_pago === 'cortesia' || form.tipo_pago === 'familiar') && (
+                  <span style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
+                    ✓ Exonerado: Se registrará en caja con valor de $0 pesos.
+                  </span>
+                )}
               </div>
 
               <div className={styles.modalFooter}>
@@ -465,6 +579,27 @@ export default function CitasPage() {
             </div>
 
             <form onSubmit={handleSaveCobro} className={styles.form}>
+              <div className={styles.field}>
+                <label>Estado del Pago *</label>
+                <select
+                  value={cobroForm.tipo_pago}
+                  onChange={e => {
+                    const tp = e.target.value;
+                    if (tp === 'cortesia' || tp === 'familiar') {
+                      setCobroForm({ ...cobroForm, tipo_pago: tp, costo: '0', metodo_pago: 'otro' });
+                    } else {
+                      setCobroForm({ ...cobroForm, tipo_pago: tp, costo: cobroForm.costo === '0' || !cobroForm.costo ? '50000' : cobroForm.costo });
+                    }
+                  }}
+                  required
+                >
+                  <option value="pagada">Pagada (Cobro completado)</option>
+                  <option value="pendiente_pago">Sin pagar (Pendiente)</option>
+                  <option value="familiar">Familiar (Exonerado - $0 pesos)</option>
+                  <option value="cortesia">Cortesía (Exonerado - $0 pesos)</option>
+                </select>
+              </div>
+
               <div className={styles.grid2}>
                 <div className={styles.field}>
                   <label>Valor de Consulta ($) *</label>
@@ -473,38 +608,31 @@ export default function CitasPage() {
                     min="0"
                     step="1000"
                     required
+                    disabled={cobroForm.tipo_pago === 'cortesia' || cobroForm.tipo_pago === 'familiar'}
                     value={cobroForm.costo}
                     onChange={e => setCobroForm({ ...cobroForm, costo: e.target.value })}
                     placeholder="Ej: 50000"
                   />
+                  {(cobroForm.tipo_pago === 'cortesia' || cobroForm.tipo_pago === 'familiar') && (
+                    <span style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
+                      ✓ Exonerado: Valor en caja registrado como $0
+                    </span>
+                  )}
                 </div>
                 <div className={styles.field}>
                   <label>Método de Pago *</label>
                   <select
                     value={cobroForm.metodo_pago}
+                    disabled={cobroForm.tipo_pago === 'cortesia' || cobroForm.tipo_pago === 'familiar'}
                     onChange={e => setCobroForm({ ...cobroForm, metodo_pago: e.target.value })}
                     required
                   >
                     <option value="efectivo">Efectivo</option>
                     <option value="transferencia">Transferencia (Nequi/Daviplata/Banco)</option>
                     <option value="tarjeta">Tarjeta Débito / Crédito</option>
-                    <option value="otro">Otro</option>
+                    <option value="otro">Otro / Exonerado</option>
                   </select>
                 </div>
-              </div>
-
-              <div className={styles.field}>
-                <label>Estado del Pago *</label>
-                <select
-                  value={cobroForm.tipo_pago}
-                  onChange={e => setCobroForm({ ...cobroForm, tipo_pago: e.target.value })}
-                  required
-                >
-                  <option value="pagada">Pagada (Cobro completado)</option>
-                  <option value="pendiente_pago">Sin pagar (Pendiente)</option>
-                  <option value="familiar">Familiar (Exonerado)</option>
-                  <option value="cortesia">Cortesía (Exonerado)</option>
-                </select>
               </div>
 
               <div className={styles.field}>

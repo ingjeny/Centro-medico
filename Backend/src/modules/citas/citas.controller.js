@@ -147,8 +147,9 @@ const generateReciboPDF = async (req, res) => {
       doc.fill(GRAY).font('Helvetica').fontSize(7.5).text(`Ref/Notas: ${cita.notas_pago}`, L + 10, y + 26, { width: W * 0.6 });
     }
 
-    const metodo = (cita.metodo_pago || 'efectivo').toUpperCase();
-    doc.fill(TEXT).font('Helvetica-Bold').fontSize(9).text(metodo, L + W * 0.62, y + 12, { width: W * 0.18 });
+    const isEx = cita.tipo_pago === 'cortesia' || cita.tipo_pago === 'familiar';
+    const metodo = isEx ? `EXONERADO (${cita.tipo_pago.toUpperCase()})` : (cita.metodo_pago || 'efectivo').toUpperCase();
+    doc.fill(TEXT).font('Helvetica-Bold').fontSize(8.5).text(metodo, L + W * 0.62, y + 12, { width: W * 0.18 });
 
     const valorFormateado = `$ ${(parseFloat(cita.costo) || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}`;
     doc.fill(BLUE).font('Helvetica-Bold').fontSize(14).text(valorFormateado, R - 130, y + 14, { width: 120, align: 'right' });

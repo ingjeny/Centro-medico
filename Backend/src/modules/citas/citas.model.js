@@ -91,14 +91,18 @@ const create = async ({ paciente_id, doctor_id, fecha, hora, motivo, notas, tipo
     const [first] = await pool.query('SELECT id FROM consultorios ORDER BY id ASC LIMIT 1');
     cid = first[0]?.id || 1;
   }
-  const pagado_at = tipo_pago === 'pagada' ? new Date() : null;
+  const isExonerado = tipo_pago === 'cortesia' || tipo_pago === 'familiar';
+  const finalCosto = isExonerado ? 0 : (parseFloat(costo) || 0);
+  const finalMetodo = isExonerado ? 'otro' : (metodo_pago || 'efectivo');
+  const pagado_at = (tipo_pago === 'pagada' || isExonerado) ? new Date() : null;
+
   const [result] = await pool.query(
     `INSERT INTO citas 
       (paciente_id, doctor_id, fecha, hora, motivo, notas, tipo_pago, costo, metodo_pago, notas_pago, pagado_at, consultorio_id) 
      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
     [
       paciente_id, doctor_id, fecha, hora, motivo || null, notas || null,
-      tipo_pago || 'pendiente_pago', costo || 0, metodo_pago || 'efectivo',
+      tipo_pago || 'pendiente_pago', finalCosto, finalMetodo,
       notas_pago || null, pagado_at, cid
     ]
   );
@@ -106,6 +110,9 @@ const create = async ({ paciente_id, doctor_id, fecha, hora, motivo, notas, tipo
 };
 
 const update = async (id, { paciente_id, doctor_id, fecha, hora, motivo, estado, notas, tipo_pago, costo, metodo_pago, notas_pago }) => {
+  const isExonerado = tipo_pago === 'cortesia' || tipo_pago === 'familiar';
+  const finalCosto = isExonerado ? 0 : (parseFloat(costo) || 0);
+  const finalMetodo = isExonerado ? 'otro' : (metodo_pago || 'efectivo');
   await pool.query(
     `UPDATE citas SET 
        paciente_id=?, doctor_id=?, fecha=?, hora=?, motivo=?, estado=?, notas=?, 
@@ -113,7 +120,7 @@ const update = async (id, { paciente_id, doctor_id, fecha, hora, motivo, estado,
      WHERE id=?`,
     [
       paciente_id, doctor_id, fecha, hora, motivo, estado, notas,
-      tipo_pago || 'pendiente_pago', costo || 0, metodo_pago || 'efectivo',
+      tipo_pago || 'pendiente_pago', finalCosto, finalMetodo,
       notas_pago || null, id
     ]
   );
@@ -124,17 +131,25 @@ const updateEstado = async (id, estado) => {
 };
 
 const updateTipoPago = async (id, tipo_pago) => {
-  const pagado_at = tipo_pago === 'pagada' ? new Date() : null;
-  await pool.query('UPDATE citas SET tipo_pago=?, pagado_at=? WHERE id=?', [tipo_pago, pagado_at, id]);
+  const isExonerado = tipo_pago === 'cortesia' || tipo_pago === 'familiar';
+  const pagado_at = (tipo_pago === 'pagada' || isExonerado) ? new Date() : null;
+  if (isExonerado) {
+    await pool.query('UPDATE citas SET tipo_pago=?, costo=0, pagado_at=? WHERE id=?', [tipo_pago, pagado_at, id]);
+  } else {
+    await pool.query('UPDATE citas SET tipo_pago=?, pagado_at=? WHERE id=?', [tipo_pago, pagado_at, id]);
+  }
 };
 
 const registrarCobro = async (id, { tipo_pago, costo, metodo_pago, notas_pago }) => {
-  const pagado_at = tipo_pago === 'pagada' ? new Date() : null;
+  const isExonerado = tipo_pago === 'cortesia' || tipo_pago === 'familiar';
+  const finalCosto = isExonerado ? 0 : (parseFloat(costo) || 0);
+  const finalMetodo = isExonerado ? 'otro' : (metodo_pago || 'efectivo');
+  const pagado_at = (tipo_pago === 'pagada' || isExonerado) ? new Date() : null;
   await pool.query(
     `UPDATE citas SET 
        tipo_pago=?, costo=?, metodo_pago=?, notas_pago=?, pagado_at=? 
      WHERE id=?`,
-    [tipo_pago || 'pagada', costo || 0, metodo_pago || 'efectivo', notas_pago || null, pagado_at, id]
+    [tipo_pago || 'pagada', finalCosto, finalMetodo, notas_pago || null, pagado_at, id]
   );
 };
 
@@ -180,9 +195,15 @@ const getResumenCaja = async ({ fecha, doctor_id }, user) => {
   let totalTarjeta = 0;
   let totalOtro = 0;
   let pagadasCount = 0;
+  let cortesiaCount = 0;
+  let familiarCount = 0;
   let pendientesCount = 0;
 
   movimientos.forEach(m => {
+    const isExonerado = m.tipo_pago === 'cortesia' || m.tipo_pago === 'familiar';
+    if (isExonerado) {
+      m.costo = 0;
+    }
     const val = parseFloat(m.costo) || 0;
     if (m.tipo_pago === 'pagada') {
       totalRecaudado += val;
@@ -191,6 +212,10 @@ const getResumenCaja = async ({ fecha, doctor_id }, user) => {
       else if (m.metodo_pago === 'transferencia') totalTransferencia += val;
       else if (m.metodo_pago === 'tarjeta') totalTarjeta += val;
       else totalOtro += val;
+    } else if (m.tipo_pago === 'cortesia') {
+      cortesiaCount++;
+    } else if (m.tipo_pago === 'familiar') {
+      familiarCount++;
     } else {
       pendientesCount++;
     }
@@ -208,6 +233,8 @@ const getResumenCaja = async ({ fecha, doctor_id }, user) => {
     citasCount: {
       total: movimientos.length,
       pagadas: pagadasCount,
+      cortesia: cortesiaCount,
+      familiar: familiarCount,
       pendientes: pendientesCount,
     },
     movimientos,

@@ -68,9 +68,10 @@ export default function CajaPage() {
 
   const openCobro = (cita) => {
     setCobroCita(cita);
+    const isEx = cita.tipo_pago === 'cortesia' || cita.tipo_pago === 'familiar';
     setCobroForm({
-      costo: cita.costo !== null && cita.costo !== undefined && Number(cita.costo) > 0 ? cita.costo : '50000',
-      metodo_pago: cita.metodo_pago || 'efectivo',
+      costo: isEx ? '0' : (cita.costo !== null && cita.costo !== undefined && Number(cita.costo) > 0 ? cita.costo : '50000'),
+      metodo_pago: isEx ? 'otro' : (cita.metodo_pago || 'efectivo'),
       tipo_pago: cita.tipo_pago === 'pendiente_pago' ? 'pagada' : (cita.tipo_pago || 'pagada'),
       notas_pago: cita.notas_pago || '',
     });
@@ -82,9 +83,10 @@ export default function CajaPage() {
     if (!cobroCita) return;
     setSavingCobro(true);
     try {
+      const isEx = cobroForm.tipo_pago === 'cortesia' || cobroForm.tipo_pago === 'familiar';
       await registrarCobro(cobroCita.id, {
-        costo: Number(cobroForm.costo) || 0,
-        metodo_pago: cobroForm.metodo_pago,
+        costo: isEx ? 0 : (Number(cobroForm.costo) || 0),
+        metodo_pago: isEx ? 'otro' : cobroForm.metodo_pago,
         tipo_pago: cobroForm.tipo_pago,
         notas_pago: cobroForm.notas_pago,
       });
@@ -149,7 +151,9 @@ export default function CajaPage() {
             {resumen ? formatCOP(resumen.totalRecaudado) : '$0'}
           </span>
           <span className={styles.kpiSub}>
-            {resumen?.citasCount?.pagadas || 0} de {resumen?.citasCount?.total || 0} citas pagadas
+            {resumen?.citasCount?.pagadas || 0} pagadas
+            {resumen?.citasCount?.cortesia ? ` · ${resumen.citasCount.cortesia} cortesía ($0)` : ''}
+            {resumen?.citasCount?.familiar ? ` · ${resumen.citasCount.familiar} familiar ($0)` : ''} · {resumen?.citasCount?.total || 0} citas
           </span>
         </div>
 
@@ -233,7 +237,15 @@ export default function CajaPage() {
                         </span>
                       </td>
                       <td className={styles.costoText}>
-                        {m.costo ? formatCOP(m.costo) : '—'}
+                        {m.tipo_pago === 'cortesia' ? (
+                          <span style={{ color: '#059669', fontWeight: 600 }}>$0 (Cortesía)</span>
+                        ) : m.tipo_pago === 'familiar' ? (
+                          <span style={{ color: '#059669', fontWeight: 600 }}>$0 (Familiar)</span>
+                        ) : m.costo ? (
+                          formatCOP(m.costo)
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td>
                         {m.metodo_pago ? (
@@ -259,10 +271,10 @@ export default function CajaPage() {
                               onClick={() => openCobro(m)}
                               title="Registrar o modificar cobro"
                             >
-                              💵 {Number(m.costo) > 0 ? 'Editar' : 'Cobrar'}
+                              💵 {m.tipo_pago === 'cortesia' || m.tipo_pago === 'familiar' ? 'Editar ($0)' : (Number(m.costo) > 0 ? 'Editar' : 'Cobrar')}
                             </button>
                           )}
-                          {(Number(m.costo) > 0 || m.tipo_pago === 'pagada') && (
+                          {(Number(m.costo) > 0 || m.tipo_pago === 'pagada' || m.tipo_pago === 'cortesia' || m.tipo_pago === 'familiar') && (
                             <button
                               type="button"
                               className={styles.btnReciboSmall}
@@ -299,6 +311,32 @@ export default function CajaPage() {
             </div>
 
             <form onSubmit={handleSaveCobro} className={styles.form}>
+              <div className={styles.field}>
+                <label>Estado del Pago *</label>
+                <select
+                  value={cobroForm.tipo_pago}
+                  onChange={(e) => {
+                    const tp = e.target.value;
+                    if (tp === 'cortesia' || tp === 'familiar') {
+                      setCobroForm({ ...cobroForm, tipo_pago: tp, costo: '0', metodo_pago: 'otro' });
+                    } else {
+                      setCobroForm({
+                        ...cobroForm,
+                        tipo_pago: tp,
+                        costo: cobroForm.costo === '0' || !cobroForm.costo ? '50000' : cobroForm.costo,
+                        metodo_pago: cobroForm.metodo_pago === 'otro' ? 'efectivo' : cobroForm.metodo_pago,
+                      });
+                    }
+                  }}
+                  required
+                >
+                  <option value="pagada">Pagada (Cobro completado)</option>
+                  <option value="pendiente_pago">Sin pagar (Pendiente)</option>
+                  <option value="familiar">Familiar (Exonerado - $0 pesos)</option>
+                  <option value="cortesia">Cortesía (Exonerado - $0 pesos)</option>
+                </select>
+              </div>
+
               <div className={styles.grid2}>
                 <div className={styles.field}>
                   <label>Valor de Consulta ($) *</label>
@@ -307,38 +345,31 @@ export default function CajaPage() {
                     min="0"
                     step="1000"
                     required
+                    disabled={cobroForm.tipo_pago === 'cortesia' || cobroForm.tipo_pago === 'familiar'}
                     value={cobroForm.costo}
                     onChange={(e) => setCobroForm({ ...cobroForm, costo: e.target.value })}
                     placeholder="Ej: 50000"
                   />
+                  {(cobroForm.tipo_pago === 'cortesia' || cobroForm.tipo_pago === 'familiar') && (
+                    <span style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
+                      ✓ Exonerado: Valor en caja registrado como $0
+                    </span>
+                  )}
                 </div>
                 <div className={styles.field}>
                   <label>Método de Pago *</label>
                   <select
                     value={cobroForm.metodo_pago}
+                    disabled={cobroForm.tipo_pago === 'cortesia' || cobroForm.tipo_pago === 'familiar'}
                     onChange={(e) => setCobroForm({ ...cobroForm, metodo_pago: e.target.value })}
                     required
                   >
                     <option value="efectivo">Efectivo</option>
                     <option value="transferencia">Transferencia (Nequi/Daviplata/Banco)</option>
                     <option value="tarjeta">Tarjeta Débito / Crédito</option>
-                    <option value="otro">Otro</option>
+                    <option value="otro">Otro / Exonerado</option>
                   </select>
                 </div>
-              </div>
-
-              <div className={styles.field}>
-                <label>Estado del Pago *</label>
-                <select
-                  value={cobroForm.tipo_pago}
-                  onChange={(e) => setCobroForm({ ...cobroForm, tipo_pago: e.target.value })}
-                  required
-                >
-                  <option value="pagada">Pagada (Cobro completado)</option>
-                  <option value="pendiente_pago">Sin pagar (Pendiente)</option>
-                  <option value="familiar">Familiar (Exonerado)</option>
-                  <option value="cortesia">Cortesía (Exonerado)</option>
-                </select>
               </div>
 
               <div className={styles.field}>
