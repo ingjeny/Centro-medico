@@ -45,7 +45,8 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table { width: 100%; border-collapse: collapse; }
@@ -131,5 +132,30 @@ tbody tr:hover td { background: var(--surface-2); }
 .closeBtn:hover { background: var(--surface-2); color: var(--text); }
 
 @media (max-width: 640px) {
-  .btnNew span { display: none; }
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .btnNew {
+    width: 100%;
+    text-align: center;
+  }
+
+  .searchWrap {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .overlay {
+    padding: 10px;
+    z-index: 1000;
+  }
+
+  .modal {
+    padding: 18px 14px;
+    border-radius: var(--radius);
+  }
 }
+

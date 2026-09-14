@@ -10,4 +10,6 @@ export const createCita = (data) => api.post('/citas', data).then(r => r.data);
 export const updateCita = (id, data) => api.put(`/citas/${id}`, data).then(r => r.data);
 export const updateEstado = (id, estado) => api.patch(`/citas/${id}/estado`, { estado }).then(r => r.data);
 export const updateTipoPago = (id, tipo_pago) => api.patch(`/citas/${id}/pago`, { tipo_pago }).then(r => r.data);
+export const registrarCobro = (id, data) => api.patch(`/citas/${id}/cobro`, data).then(r => r.data);
+export const getResumenCaja = (fecha, doctor_id) => api.get('/citas/caja/resumen', { params: { fecha, doctor_id } }).then(r => r.data);
 export const deleteCita = (id) => api.delete(`/citas/${id}`).then(r => r.data);

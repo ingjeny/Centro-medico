@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { getCitasByMonth, getCitasByDate, createCita, updateEstado, updateTipoPago, deleteCita } from '../services/citas.service';
+import { getCitasByMonth, getCitasByDate, createCita, updateEstado, updateTipoPago, deleteCita, registrarCobro } from '../services/citas.service';
 import { getPacientes } from '../../pacientes/services/pacientes.service';
 import useAuthStore from '../../../store/authStore';
-import api from '../../../api/axios';
+import api, { API_URL } from '../../../api/axios';
+import { buildWhatsAppReminderUrl } from '../../../helpers/whatsapp';
 import styles from './CitasPage.module.css';
 
 const ESTADO_COLOR = {
@@ -44,6 +45,17 @@ export default function CitasPage() {
   const [doctores, setDoctores] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
+
+  // Estado para modal de cobro
+  const [cobroModal, setCobroModal] = useState(false);
+  const [cobroCita, setCobroCita] = useState(null);
+  const [cobroForm, setCobroForm] = useState({
+    costo: '',
+    metodo_pago: 'efectivo',
+    tipo_pago: 'pagada',
+    notas_pago: '',
+  });
+  const [savingCobro, setSavingCobro] = useState(false);
 
   const loadMes = () =>
     getCitasByMonth(currentDate.getFullYear(), currentDate.getMonth() + 1).then(setCitasMes);
@@ -97,6 +109,52 @@ export default function CitasPage() {
     await deleteCita(id);
     loadMes();
     if (selectedDate) setCitasDia(await getCitasByDate(format(selectedDate, 'yyyy-MM-dd')));
+  };
+
+  const openCobro = (cita) => {
+    setCobroCita(cita);
+    setCobroForm({
+      costo: cita.costo !== null && cita.costo !== undefined && Number(cita.costo) > 0 ? cita.costo : '50000',
+      metodo_pago: cita.metodo_pago || 'efectivo',
+      tipo_pago: cita.tipo_pago === 'pendiente_pago' ? 'pagada' : (cita.tipo_pago || 'pagada'),
+      notas_pago: cita.notas_pago || '',
+    });
+    setCobroModal(true);
+  };
+
+  const handleSaveCobro = async (e) => {
+    e.preventDefault();
+    if (!cobroCita) return;
+    setSavingCobro(true);
+    try {
+      await registrarCobro(cobroCita.id, {
+        costo: Number(cobroForm.costo) || 0,
+        metodo_pago: cobroForm.metodo_pago,
+        tipo_pago: cobroForm.tipo_pago,
+        notas_pago: cobroForm.notas_pago,
+      });
+      setCobroModal(false);
+      loadMes();
+      if (selectedDate) setCitasDia(await getCitasByDate(format(selectedDate, 'yyyy-MM-dd')));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error al registrar cobro');
+    } finally {
+      setSavingCobro(false);
+    }
+  };
+
+  const openRecibo = (citaId) => {
+    const token = localStorage.getItem('token');
+    window.open(`${API_URL}/citas/${citaId}/recibo-pdf?token=${token}`, '_blank');
+  };
+
+  const sendWhatsApp = (cita) => {
+    const url = buildWhatsAppReminderUrl(cita);
+    if (!url) {
+      alert('El paciente no tiene un número de teléfono válido registrado.');
+      return;
+    }
+    window.open(url, '_blank');
   };
 
   const openModal = () => {
@@ -246,6 +304,41 @@ export default function CitasPage() {
                                 <option value="completada">Completada</option>
                                 <option value="cancelada">Cancelada</option>
                               </select>
+
+                              {/* WhatsApp recordatorio */}
+                              <button
+                                type="button"
+                                className={styles.btnWhatsApp}
+                                title="Enviar recordatorio por WhatsApp"
+                                onClick={() => sendWhatsApp(cita)}
+                              >
+                                💬
+                              </button>
+
+                              {/* Cobrar y Recibo */}
+                              {canEdit && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className={styles.btnCobrar}
+                                    onClick={() => openCobro(cita)}
+                                    title="Registrar o editar cobro de la cita"
+                                  >
+                                    💵 {cita.costo ? `$${Number(cita.costo).toLocaleString('es-CO')}` : 'Cobrar'}
+                                  </button>
+                                  {(Number(cita.costo) > 0 || cita.tipo_pago === 'pagada') && (
+                                    <button
+                                      type="button"
+                                      className={styles.btnRecibo}
+                                      onClick={() => openRecibo(cita.id)}
+                                      title="Descargar comprobante de pago en PDF"
+                                    >
+                                      🧾 Recibo
+                                    </button>
+                                  )}
+                                </>
+                              )}
+
                               {/* Tipo de pago */}
                               {canEdit && (
                                 <select
@@ -261,7 +354,7 @@ export default function CitasPage() {
                                 </select>
                               )}
                               {canEdit && (
-                                <button className={styles.btnDelCita} onClick={() => handleDelete(cita.id)}>
+                                <button className={styles.btnDelCita} onClick={() => handleDelete(cita.id)} title="Eliminar cita">
                                   <CloseIcon />
                                 </button>
                               )}
@@ -349,6 +442,85 @@ export default function CitasPage() {
                 <button type="button" className={styles.btnCancel} onClick={() => setModal(false)}>Cancelar</button>
                 <button type="submit" className={styles.btnSave} disabled={loading}>
                   {loading ? 'Guardando...' : 'Crear cita'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Cobro de Cita ──────────────────────────────────────────────── */}
+      {cobroModal && cobroCita && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHead}>
+              <h2 className={styles.modalTitle}>💵 Cobro de Cita</h2>
+              <button className={styles.closeBtn} onClick={() => setCobroModal(false)}><CloseIcon /></button>
+            </div>
+            
+            <div style={{ marginBottom: '16px', background: 'var(--surface-2)', padding: '12px 14px', borderRadius: '8px', fontSize: '13px', lineHeight: '1.5' }}>
+              <p><strong>Paciente:</strong> {cobroCita.paciente_nombre}</p>
+              <p><strong>Fecha/Hora:</strong> {cobroCita.fecha?.slice(0, 10)} · {cobroCita.hora?.slice(0, 5)}</p>
+              <p><strong>Doctor:</strong> {cobroCita.doctor_nombre}</p>
+            </div>
+
+            <form onSubmit={handleSaveCobro} className={styles.form}>
+              <div className={styles.grid2}>
+                <div className={styles.field}>
+                  <label>Valor de Consulta ($) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    required
+                    value={cobroForm.costo}
+                    onChange={e => setCobroForm({ ...cobroForm, costo: e.target.value })}
+                    placeholder="Ej: 50000"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Método de Pago *</label>
+                  <select
+                    value={cobroForm.metodo_pago}
+                    onChange={e => setCobroForm({ ...cobroForm, metodo_pago: e.target.value })}
+                    required
+                  >
+                    <option value="efectivo">Efectivo</option>
+                    <option value="transferencia">Transferencia (Nequi/Daviplata/Banco)</option>
+                    <option value="tarjeta">Tarjeta Débito / Crédito</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.field}>
+                <label>Estado del Pago *</label>
+                <select
+                  value={cobroForm.tipo_pago}
+                  onChange={e => setCobroForm({ ...cobroForm, tipo_pago: e.target.value })}
+                  required
+                >
+                  <option value="pagada">Pagada (Cobro completado)</option>
+                  <option value="pendiente_pago">Sin pagar (Pendiente)</option>
+                  <option value="familiar">Familiar (Exonerado)</option>
+                  <option value="cortesia">Cortesía (Exonerado)</option>
+                </select>
+              </div>
+
+              <div className={styles.field}>
+                <label>Notas de Cobro / Transacción (opcional)</label>
+                <input
+                  type="text"
+                  value={cobroForm.notas_pago}
+                  onChange={e => setCobroForm({ ...cobroForm, notas_pago: e.target.value })}
+                  placeholder="Ej: Aprobación #5541, recibidos $100.000, vuelto $50.000"
+                />
+              </div>
+
+              <div className={styles.modalFooter}>
+                <button type="button" className={styles.btnCancel} onClick={() => setCobroModal(false)}>Cancelar</button>
+                <button type="submit" className={styles.btnSave} disabled={savingCobro}>
+                  {savingCobro ? 'Guardando...' : 'Registrar Cobro'}
                 </button>
               </div>
             </form>

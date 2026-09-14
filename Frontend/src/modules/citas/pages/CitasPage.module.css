@@ -270,6 +270,48 @@
 
 .btnDelCita:hover { background: #fef2f2; color: var(--danger); }
 
+.btnWhatsApp {
+  background: #25d366;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.btnWhatsApp:hover { background: #128c7e; transform: scale(1.05); }
+
+.btnRecibo {
+  background: #e0e7ff;
+  color: #4338ca;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.btnRecibo:hover { background: #c7d2fe; }
+
+.btnCobrar {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btnCobrar:hover { background: #d1fae5; }
+
 /* Modal */
 .overlay {
   position: fixed; inset: 0;
@@ -389,5 +431,114 @@
 
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
-  .sidePanel { max-height: 400px; }
+  .sidePanel { max-height: 480px; }
 }
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .btnNew {
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .calCard {
+    border-radius: var(--radius);
+  }
+
+  .calNav {
+    padding: 10px 12px;
+  }
+
+  .calNavTitle {
+    font-size: 13px;
+  }
+
+  .weekDay {
+    font-size: 9.5px;
+    padding: 6px 0;
+  }
+
+  .calBody {
+    padding: 4px;
+  }
+
+  .day {
+    min-height: 52px;
+    padding: 3px 2px;
+  }
+
+  .dayNum {
+    font-size: 11px;
+  }
+
+  .citaBadge {
+    font-size: 9.5px;
+    padding: 2px 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .legend {
+    padding: 8px 10px;
+    gap: 6px;
+    font-size: 10.5px;
+    flex-wrap: wrap;
+  }
+
+  .legendSep {
+    display: none;
+  }
+
+  /* Modales en móvil */
+  .overlay {
+    padding: 10px;
+    z-index: 1000;
+  }
+
+  .modal {
+    padding: 18px 14px;
+    border-radius: var(--radius);
+    max-height: 94vh;
+  }
+
+  .modalTitle {
+    font-size: 15px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pagoGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .pagoOption {
+    padding: 8px 4px;
+    font-size: 11.5px;
+  }
+
+  .modalFooter {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .btnCancel, .btnSave {
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .citaItemFooter {
+    gap: 4px;
+  }
+}
+

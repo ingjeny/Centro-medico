@@ -133,6 +133,8 @@
 .hBtns { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
 
 .btnView { padding: 5px 10px; background: var(--primary-bg); color: var(--primary); border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; }
+.btnReceta { padding: 5px 10px; background: #e0e7ff; color: #4338ca; border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; }
+.btnReceta:hover { background: #c7d2fe; }
 .btnPDF  { padding: 5px 10px; background: #f0fdf4; color: var(--success); border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; }
 
 .noSelected {
@@ -140,6 +142,51 @@
   height: 280px; color: var(--text-3); font-size: 13.5px; gap: 6px; text-align: center; padding: 20px;
 }
 
-@media (max-width: 700px) {
-  .layout { grid-template-columns: 1fr; }
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .leftPanel {
+    max-height: 280px;
+  }
+
+  .rightHead {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .rightHeadBtns {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btnOutline, .btnPrimary {
+    flex: 1;
+    text-align: center;
+    padding: 9px;
+  }
+
+  .historiaCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .hBtns {
+    margin-left: 0;
+    width: 100%;
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  .btnView, .btnReceta, .btnPDF {
+    flex: 1;
+    text-align: center;
+    padding: 7px 4px;
+  }
 }
+

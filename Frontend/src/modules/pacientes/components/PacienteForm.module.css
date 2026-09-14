@@ -58,4 +58,8 @@
 .btnSave:hover:not(:disabled) { background: var(--primary-h); }
 .btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
 
-@media (max-width: 500px) { .grid2 { grid-template-columns: 1fr; } }
+@media (max-width: 500px) {
+  .grid2 { grid-template-columns: 1fr; gap: 10px; }
+  .actions { flex-direction: column-reverse; gap: 8px; }
+  .btnCancel, .btnSave { width: 100%; text-align: center; padding: 10px; }
+}

@@ -202,3 +202,12 @@
   color: var(--text-2);
   margin: 0;
 }
+
+@media (max-width: 600px) {
+  .page { padding: 0; }
+  .grid { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+  .actions { flex-direction: column; }
+  .btnGhost, .btnPrimary { width: 100%; text-align: center; }
+}
+

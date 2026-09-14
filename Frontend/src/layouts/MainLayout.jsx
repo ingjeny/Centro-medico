@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import styles from './MainLayout.module.css';
@@ -42,6 +43,17 @@ const navItems = [
     ),
   },
   {
+    to: '/caja', label: 'Caja & Cobros', roles: ['admin', 'secretaria'],
+    icon: (
+      <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <line x1="2" y1="10" x2="22" y2="10"/>
+        <circle cx="7" cy="15" r="1"/>
+        <circle cx="17" cy="15" r="1"/>
+      </svg>
+    ),
+  },
+  {
     to: '/usuarios', label: 'Usuarios', roles: ['admin'],
     icon: (
       <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -79,6 +91,21 @@ const navItems = [
   },
 ];
 
+const MenuIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 const LogoutIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -89,16 +116,58 @@ const LogoutIcon = () => (
 export default function MainLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => { logout(); navigate('/login'); };
   const rolLabel = { admin: 'Administrador', doctor: 'Doctor', secretaria: 'Secretaria' };
 
   return (
     <div className={styles.layout}>
-      <aside className={styles.sidebar}>
+      {/* ── Barra superior para móviles ── */}
+      <header className={styles.mobileHeader}>
+        <button
+          className={styles.mobileMenuBtn}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Abrir menú"
+        >
+          {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+
+        <div className={styles.mobileBrand}>
+          <span className={styles.mobileBrandName}>Consultorio</span>
+          <span className={styles.mobileDot} />
+        </div>
+
+        <div className={styles.mobileUser}>
+          <div className={styles.avatar}>{user?.nombre?.[0]?.toUpperCase()}</div>
+          <button className={styles.logoutBtn} onClick={handleLogout} title="Cerrar sesión">
+            <LogoutIcon />
+          </button>
+        </div>
+      </header>
+
+      {/* ── Fondo oscuro al abrir drawer móvil ── */}
+      {mobileMenuOpen && (
+        <div
+          className={styles.drawerBackdrop}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* ── Barra lateral / Drawer ── */}
+      <aside className={`${styles.sidebar} ${mobileMenuOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.brand}>
-          <div className={styles.brandName}>Consultorio</div>
-          <div className={styles.brandSub}>Sistema médico</div>
+          <div>
+            <div className={styles.brandName}>Consultorio</div>
+            <div className={styles.brandSub}>Sistema médico</div>
+          </div>
+          <button
+            className={styles.closeDrawerBtn}
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            <CloseIcon />
+          </button>
         </div>
 
         <nav className={styles.nav}>
@@ -109,6 +178,7 @@ export default function MainLayout() {
                 key={item.to}
                 to={item.to}
                 end={item.to === '/'}
+                onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
               >
                 {item.icon}

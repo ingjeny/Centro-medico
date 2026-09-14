@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getHistoria, createIncapacidad, deleteIncapacidad } from '../services/historias.service';
+import { getHistoria, createIncapacidad, deleteIncapacidad, subirAdjunto, eliminarAdjunto } from '../services/historias.service';
 import useAuthStore from '../../../store/authStore';
 import { API_URL } from '../../../api/axios';
 import styles from './DetalleHistoriaPage.module.css';
@@ -22,9 +22,37 @@ export default function DetalleHistoriaPage() {
   const [incapModal, setIncapModal] = useState(false);
   const [incapForm, setIncapForm] = useState(emptyIncap);
   const [loadingIncap, setLoadingIncap] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = () => getHistoria(id).then(setHistoria);
   useEffect(() => { load(); }, [id]);
+
+  const handleUploadAdjunto = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('archivo', file);
+    setUploading(true);
+    try {
+      await subirAdjunto(id, fd);
+      await load();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error al subir archivo');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteAdjunto = async (adjuntoId) => {
+    if (!confirm('¿Deseas eliminar este archivo adjunto?')) return;
+    try {
+      await eliminarAdjunto(adjuntoId);
+      await load();
+    } catch (err) {
+      alert('Error al eliminar adjunto');
+    }
+  };
 
   if (!historia) return null;
 
@@ -102,6 +130,10 @@ export default function DetalleHistoriaPage() {
               + Incapacidad
             </button>
           )}
+          <button className={styles.btnReceta}
+            onClick={() => window.open(`${BASE}/historias/${id}/receta-pdf?token=${token()}`, '_blank')}>
+            💊 Receta Médica (PDF)
+          </button>
           <button className={styles.btnPrint}
             onClick={() => window.open(`${BASE}/historias/${id}/pdf?token=${token()}`, '_blank')}>
             Imprimir PDF
@@ -216,6 +248,60 @@ export default function DetalleHistoriaPage() {
               </div>
             </div>
           )}
+
+          {/* Exámenes y Archivos Clínicos */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeadRow}>
+              <p className={styles.secLabel}>Exámenes & Archivos Clínicos</p>
+              <label className={styles.btnUploadAdjunto}>
+                <input
+                  type="file"
+                  onChange={handleUploadAdjunto}
+                  style={{ display: 'none' }}
+                  accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.txt"
+                  disabled={uploading}
+                />
+                {uploading ? 'Subiendo archivo...' : '+ Adjuntar Examen / Archivo'}
+              </label>
+            </div>
+
+            {(!historia.adjuntos || historia.adjuntos.length === 0) ? (
+              <p className={styles.emptyText}>No se han adjuntado exámenes ni archivos a esta consulta (laboratorios, ecografías, radiografías, etc.).</p>
+            ) : (
+              <div className={styles.adjuntosGrid}>
+                {historia.adjuntos.map(adj => (
+                  <div key={adj.id} className={styles.adjuntoCard}>
+                    <div className={styles.adjuntoIcon}>
+                      {adj.tipo_archivo === 'pdf' ? '📄' : adj.tipo_archivo === 'imagen' ? '🖼️' : '📎'}
+                    </div>
+                    <div className={styles.adjuntoInfo}>
+                      <p className={styles.adjuntoName} title={adj.nombre_original}>{adj.nombre_original}</p>
+                      <p className={styles.adjuntoDate}>
+                        {new Date(adj.created_at).toLocaleDateString('es-ES')} · {adj.tipo_archivo.toUpperCase()}
+                      </p>
+                    </div>
+                    <div className={styles.adjuntoActions}>
+                      <button
+                        className={styles.btnViewAdjunto}
+                        onClick={() => window.open(`${BASE ? BASE + '/' : '/'}${adj.archivo_path.replace(/^\/+/, '')}`, '_blank')}
+                      >
+                        Ver
+                      </button>
+                      {isDoctor && (
+                        <button
+                          className={styles.btnDelAdjunto}
+                          onClick={() => handleDeleteAdjunto(adj.id)}
+                          title="Eliminar"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

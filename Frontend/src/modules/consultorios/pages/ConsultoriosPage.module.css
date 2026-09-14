@@ -107,3 +107,16 @@
 .btnSave { padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
 .btnSave:hover:not(:disabled) { background: var(--primary-h); }
 .btnSave:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 600px) {
+  .page { padding: 0; }
+  .grid { grid-template-columns: 1fr; }
+  .header { flex-direction: column; align-items: stretch; gap: 12px; }
+  .btnNew { width: 100%; text-align: center; }
+  .overlay { padding: 10px; z-index: 1000; }
+  .modal { padding: 18px 14px; border-radius: var(--radius); }
+  .grid2 { grid-template-columns: 1fr; gap: 10px; }
+  .modalFooter { flex-direction: column-reverse; gap: 8px; }
+  .btnCancel, .btnSave { width: 100%; text-align: center; padding: 10px; }
+}
+

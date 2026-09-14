@@ -32,7 +32,19 @@ const getById = async (id) => {
 };
 
 const create = async ({ historia_id, paciente_id, doctor_id, fecha_emision, fecha_inicio, fecha_fin, dias, diagnostico, tipo, observaciones }, user) => {
-  const cid = user?.consultorio_id || null;
+  let cid = user?.consultorio_id || null;
+  if (!cid && doctor_id) {
+    const [doc] = await pool.query('SELECT consultorio_id FROM usuarios WHERE id = ?', [doctor_id]);
+    cid = doc[0]?.consultorio_id || null;
+  }
+  if (!cid && paciente_id) {
+    const [pac] = await pool.query('SELECT consultorio_id FROM pacientes WHERE id = ?', [paciente_id]);
+    cid = pac[0]?.consultorio_id || null;
+  }
+  if (!cid) {
+    const [first] = await pool.query('SELECT id FROM consultorios ORDER BY id ASC LIMIT 1');
+    cid = first[0]?.id || 1;
+  }
   const [result] = await pool.query(
     `INSERT INTO incapacidades
       (historia_id, paciente_id, doctor_id, fecha_emision, fecha_inicio, fecha_fin, dias, diagnostico, tipo, observaciones, consultorio_id)

@@ -34,7 +34,11 @@ const create = async (data, user) => {
     cedula, nombre, apellido, fecha_nacimiento, sexo,
     telefono, email, direccion, tipo_sangre, alergias, antecedentes,
   } = data;
-  const cid = user.consultorio_id || null;
+  let cid = user?.consultorio_id || null;
+  if (!cid) {
+    const [first] = await pool.query('SELECT id FROM consultorios ORDER BY id ASC LIMIT 1');
+    cid = first[0]?.id || 1;
+  }
   const [result] = await pool.query(
     `INSERT INTO pacientes
       (cedula, nombre, apellido, fecha_nacimiento, sexo,

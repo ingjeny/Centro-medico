@@ -13,6 +13,9 @@
 .btnPrint { padding: 7px 14px; background: var(--success); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; }
 .btnPrint:hover { background: #059669; }
 
+.btnReceta { padding: 7px 14px; background: #6366f1; color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.btnReceta:hover { background: #4f46e5; }
+
 /* Card */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
 
@@ -117,3 +120,101 @@
   .svGrid { grid-template-columns: repeat(3, 1fr); }
   .grid3 { grid-template-columns: 1fr 1fr; }
 }
+
+/* Adjuntos clínicos */
+.sectionHeadRow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.btnUploadAdjunto {
+  padding: 6px 14px;
+  background: #f1f5f9;
+  border: 1px dashed #94a3b8;
+  color: #334155;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+.btnUploadAdjunto:hover {
+  background: #e2e8f0;
+  border-color: #64748b;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: var(--radius-sm);
+}
+
+.adjuntosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.adjuntoCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.adjuntoIcon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.adjuntoInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.adjuntoName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.adjuntoDate {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.adjuntoActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btnViewAdjunto {
+  padding: 4px 8px;
+  background: #e0e7ff;
+  color: #4338ca;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+}
+.btnViewAdjunto:hover { background: #c7d2fe; }
+
+.btnDelAdjunto {
+  padding: 4px 7px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+}
+.btnDelAdjunto:hover { background: #fecaca; }

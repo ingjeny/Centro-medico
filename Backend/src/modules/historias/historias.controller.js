@@ -1,6 +1,8 @@
 const model = require('./historias.model');
 const PDFDocument = require('pdfkit');
 const { getLogoPath, getFirmaPath } = require('./pdf.helper');
+const fs = require('fs');
+const path = require('path');
 
 const getByPaciente = async (req, res) => {
   try { res.json(await model.getByPaciente(req.params.paciente_id, req.user)); }
@@ -13,7 +15,8 @@ const getById = async (req, res) => {
     if (!historia) return res.status(404).json({ message: 'Historia no encontrada' });
     const medicamentos = await model.getMedicamentos(req.params.id);
     const incapacidades = await model.getIncapacidades(req.params.id);
-    res.json({ ...historia, medicamentos, incapacidades });
+    const adjuntos = await model.getAdjuntos(req.params.id);
+    res.json({ ...historia, medicamentos, incapacidades, adjuntos });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -167,4 +170,162 @@ const generatePDF = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-module.exports = { getByPaciente, getById, create, update, generatePDF };
+// ── PDF Fórmula Médica / Recetario ──────────────────────────────────────────
+
+const generateRecetaPDF = async (req, res) => {
+  try {
+    const h = await model.getById(req.params.id);
+    if (!h) return res.status(404).json({ message: 'Historia no encontrada' });
+    const meds = await model.getMedicamentos(req.params.id);
+
+    const doc = new PDFDocument({ margin: 0, size: 'A4' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename=receta_${req.params.id}.pdf`);
+    doc.pipe(res);
+
+    const BLUE = '#1B3A6B', BLUE_LT = '#E8EDF5', ACCENT = '#2563EB';
+    const GRAY = '#64748B', GRAY_LT = '#F8FAFC', TEXT = '#1E293B';
+    const L = 45, R = 550, W = R - L, PW = 595;
+
+    const logoPath = getLogoPath();
+    const firmaPath = getFirmaPath(h.doctor_id);
+
+    // Header
+    doc.rect(0, 0, PW, 72).fill(BLUE);
+    if (logoPath) { try { doc.image(logoPath, L, 10, { height: 52, fit: [130, 52] }); } catch (_) {} }
+    const titleX = logoPath ? 190 : L;
+    const titleW = logoPath ? R - 190 : W;
+    doc.fill('#FFF').font('Helvetica-Bold').fontSize(18).text('FÓRMULA MÉDICA / RECETA', titleX, 20, { width: titleW, align: logoPath ? 'right' : 'center' });
+    doc.fill('rgba(255,255,255,0.7)').font('Helvetica').fontSize(8.5)
+      .text(`Folio: ${String(h.id).padStart(5,'0')}   ·   Fecha: ${new Date(h.fecha).toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})}`, titleX, 44, { width: titleW, align: logoPath ? 'right' : 'center' });
+
+    // Ficha paciente y médico
+    let y = 84;
+    doc.rect(L, y, W, 52).fill(GRAY_LT).stroke('#E2E8F0').lineWidth(0.5);
+    doc.fill(BLUE).font('Helvetica-Bold').fontSize(12).text(h.paciente_nombre || '—', L+10, y+8, { width: W*0.55 });
+    const demo = [h.cedula&&`Identificación: ${h.cedula}`, h.telefono&&`Tel: ${h.telefono}`].filter(Boolean).join('   ·   ');
+    doc.fill(GRAY).font('Helvetica').fontSize(8.5).text(demo, L+10, y+24, { width: W*0.55 });
+    if (h.diagnostico) {
+      doc.fill(TEXT).font('Helvetica').fontSize(8).text(`Diagnóstico: ${h.diagnostico}`, L+10, y+37, { width: W*0.55 });
+    }
+
+    const mxL = L+W*0.6, mxW = W*0.38;
+    doc.fill(GRAY).font('Helvetica-Bold').fontSize(7.5).text('PROFESIONAL TRATANTE', mxL, y+8, { width: mxW });
+    doc.fill(TEXT).font('Helvetica-Bold').fontSize(9.5).text(h.doctor_nombre||'—', mxL, y+19, { width: mxW });
+    if (h.especialidad_nombre) doc.fill(ACCENT).font('Helvetica').fontSize(8.5).text(h.especialidad_nombre, mxL, y+32, { width: mxW });
+    y += 68;
+
+    // Sección de Prescripción (Rp.)
+    doc.rect(L, y, 3, 20).fill(ACCENT);
+    doc.rect(L+3, y, W-3, 20).fill(BLUE_LT);
+    doc.fill(BLUE).font('Helvetica-Bold').fontSize(10).text('RP. / PRESCRIPCIÓN MÉDICA', L+12, y+5, { width: W-20 });
+    y += 30;
+
+    if (!meds || meds.length === 0) {
+      doc.fill(GRAY).font('Helvetica-Oblique').fontSize(9).text('No se registraron medicamentos en esta consulta.', L, y, { width: W });
+      y += 30;
+    } else {
+      meds.forEach((m, i) => {
+        const cardY = y;
+        doc.rect(L, cardY, 22, 22).fill(ACCENT);
+        doc.fill('#fff').font('Helvetica-Bold').fontSize(9.5).text(`${i+1}`, L, cardY+6, { width: 22, align: 'center' });
+        doc.fill(BLUE).font('Helvetica-Bold').fontSize(11).text(m.nombre, L+28, cardY+4, { width: W-28 });
+        y += 24;
+
+        const specs = [
+          m.dosis && `Dosis: ${m.dosis}`,
+          m.frecuencia && `Frecuencia: ${m.frecuencia}`,
+          m.duracion && `Duración: ${m.duracion}`
+        ].filter(Boolean).join('    |    ');
+
+        if (specs) {
+          doc.fill(TEXT).font('Helvetica-Bold').fontSize(9).text(specs, L+28, y, { width: W-28 });
+          y += 14;
+        }
+
+        if (m.indicaciones) {
+          doc.fill(GRAY).font('Helvetica').fontSize(8.5).text(`Indicaciones: ${m.indicaciones}`, L+28, y, { width: W-28, lineGap: 1.5 });
+          y += doc.heightOfString(`Indicaciones: ${m.indicaciones}`, { width: W-28 }) + 6;
+        }
+
+        y += 8;
+        doc.moveTo(L+28, y).lineTo(R, y).lineWidth(0.5).stroke('#E2E8F0');
+        y += 12;
+      });
+    }
+
+    if (h.tratamiento) {
+      y += 8;
+      doc.rect(L, y, 3, 16).fill(GRAY);
+      doc.rect(L+3, y, W-3, 16).fill(GRAY_LT);
+      doc.fill(TEXT).font('Helvetica-Bold').fontSize(8.5).text('RECOMENDACIONES GENERALES', L+12, y+4, { width: W-20 });
+      y += 22;
+      doc.fill(TEXT).font('Helvetica').fontSize(8.5).text(h.tratamiento, L+4, y, { width: W-8, lineGap: 1.5 });
+    }
+
+    // Firma
+    const sigY = 740;
+    doc.moveTo(L, sigY).lineTo(R, sigY).lineWidth(0.5).stroke('#E2E8F0');
+    if (firmaPath) { try { doc.image(firmaPath, L, sigY+4, {height:46,fit:[160,46]}); } catch (_) {} }
+    doc.moveTo(330, sigY+48).lineTo(R, sigY+48).lineWidth(0.5).stroke(GRAY);
+    doc.fill(BLUE).font('Helvetica-Bold').fontSize(9).text(h.doctor_nombre||'—', 330, sigY+51, {width:R-330,align:'center'});
+    if (h.especialidad_nombre) doc.fill(GRAY).font('Helvetica').fontSize(8).text(h.especialidad_nombre, 330, sigY+63, {width:R-330,align:'center'});
+    doc.fill(GRAY).font('Helvetica').fontSize(7.5).text('Firma y Sello Médico', 330, sigY+(h.especialidad_nombre?74:63), {width:R-330,align:'center'});
+    doc.fill('#94A3B8').font('Helvetica').fontSize(7).text(`Impreso: ${new Date().toLocaleString('es-ES')} · Recetario Médico Válido`, L, 825, {width:W});
+
+    doc.end();
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ── Adjuntos Clínicos (Controller) ──────────────────────────────────────────
+
+const getAdjuntos = async (req, res) => {
+  try {
+    const rows = await model.getAdjuntos(req.params.id);
+    res.json(rows);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+const subirAdjunto = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No se envió ningún archivo' });
+    const historia = await model.getById(req.params.id);
+    if (!historia) return res.status(404).json({ message: 'Historia no encontrada' });
+
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let tipo_archivo = 'documento';
+    if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) tipo_archivo = 'imagen';
+    else if (ext === '.pdf') tipo_archivo = 'pdf';
+
+    const adjuntoId = await model.addAdjunto({
+      historia_id: req.params.id,
+      paciente_id: historia.paciente_id,
+      nombre_original: req.file.originalname,
+      archivo_path: req.file.path.replace(/\\/g, '/'),
+      tipo_archivo,
+      descripcion: req.body.descripcion || null,
+    });
+
+    res.status(201).json({ id: adjuntoId, message: 'Archivo adjuntado correctamente' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+const eliminarAdjunto = async (req, res) => {
+  try {
+    const adjunto = await model.getAdjuntoById(req.params.adjuntoId);
+    if (!adjunto) return res.status(404).json({ message: 'Adjunto no encontrado' });
+
+    const fullPath = path.join(__dirname, '../../../', adjunto.archivo_path);
+    if (fs.existsSync(fullPath)) {
+      try { fs.unlinkSync(fullPath); } catch (_) {}
+    }
+
+    await model.deleteAdjunto(req.params.adjuntoId);
+    res.json({ message: 'Adjunto eliminado correctamente' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+module.exports = {
+  getByPaciente, getById, create, update, generatePDF,
+  generateRecetaPDF, getAdjuntos, subirAdjunto, eliminarAdjunto,
+};

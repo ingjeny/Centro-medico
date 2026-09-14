@@ -13,3 +13,15 @@ export const getIncapacidadesByPaciente = (paciente_id) =>
 
 export const createIncapacidad = (data) => api.post('/incapacidades', data).then(r => r.data);
 export const deleteIncapacidad = (id) => api.delete(`/incapacidades/${id}`).then(r => r.data);
+
+// Adjuntos clínicos
+export const getAdjuntos = (historia_id) =>
+  api.get(`/historias/${historia_id}/adjuntos`).then(r => r.data);
+
+export const subirAdjunto = (historia_id, formData) =>
+  api.post(`/historias/${historia_id}/adjuntos`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then(r => r.data);
+
+export const eliminarAdjunto = (adjunto_id) =>
+  api.delete(`/historias/adjuntos/${adjunto_id}`).then(r => r.data);

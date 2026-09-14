@@ -39,6 +39,10 @@ export default function HistoriasPage() {
     window.open(`${API_URL}/historias/${id}/pdf?token=${localStorage.getItem('token')}`, '_blank');
   };
 
+  const openReceta = (id) => {
+    window.open(`${API_URL}/historias/${id}/receta-pdf?token=${localStorage.getItem('token')}`, '_blank');
+  };
+
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>Historial clínico</h1>
@@ -98,7 +102,8 @@ export default function HistoriasPage() {
                       </div>
                       <div className={styles.hBtns}>
                         <button className={styles.btnView} onClick={() => navigate(`/historias/${h.id}`)}>Ver</button>
-                        <button className={styles.btnPDF} onClick={() => openPDF(h.id)}>PDF</button>
+                        <button className={styles.btnReceta} onClick={() => openReceta(h.id)} title="Descargar Fórmula Médica">Receta</button>
+                        <button className={styles.btnPDF} onClick={() => openPDF(h.id)} title="Descargar Historia Completa">PDF</button>
                       </div>
                     </div>
                   ))}

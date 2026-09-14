@@ -9,6 +9,7 @@ import CitasPage from '../modules/citas/pages/CitasPage';
 import HistoriasPage from '../modules/historias/pages/HistoriasPage';
 import NuevaHistoriaPage from '../modules/historias/pages/NuevaHistoriaPage';
 import DetalleHistoriaPage from '../modules/historias/pages/DetalleHistoriaPage';
+import CajaPage from '../modules/caja/pages/CajaPage';
 import UsuariosPage from '../modules/usuarios/pages/UsuariosPage';
 import ConfiguracionPage from '../modules/configuracion/pages/ConfiguracionPage';
 import EspecialidadesPage from '../modules/especialidades/pages/EspecialidadesPage';
@@ -38,6 +39,11 @@ export default function AppRouter() {
           <Route path="pacientes" element={<PacientesPage />} />
           <Route path="pacientes/:id" element={<PacienteDetallePage />} />
           <Route path="citas" element={<CitasPage />} />
+          <Route path="caja" element={
+            <PrivateRoute roles={['admin', 'secretaria']}>
+              <CajaPage />
+            </PrivateRoute>
+          } />
           <Route path="historias" element={<HistoriasPage />} />
           <Route path="historias/nueva" element={
             <PrivateRoute roles={['admin', 'doctor']}>
